@@ -14,14 +14,14 @@ repositories {
 dependencies {
   implementation "org.apache.solr:solr-core:${solrVersion}"
 
-  testImplementation("org.mockito:mockito-core", {
+  testImplementation("org.mockito:mockito-core:4.6.1", {
     exclude group: "net.bytebuddy", module: "byte-buddy-agent"
   })
 
   testImplementation "org.apache.solr:solr-test-framework:${solrVersion}"
   testImplementation "com.carrotsearch.randomizedtesting:randomizedtesting-runner"
-  testImplementation "junit:junit"
-  testImplementation "org.hamcrest:hamcrest"
+  testImplementation "junit:junit:4.13.2"
+  testImplementation "org.hamcrest:hamcrest:2.2"
 
-  testImplementation "commons-io:commons-io"
+  testImplementation "commons-io:commons-io:2.11.0"
 }
