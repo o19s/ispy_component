@@ -1,7 +1,5 @@
 package com.o19s.payloads.component;
 
-import com.o19s.payloads.Payloader;
-import com.o19s.payloads.params.PayloadParams;
 import org.apache.lucene.search.Query;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
@@ -69,9 +67,5 @@ public class ISpyComponent extends SearchComponent implements PluginInfoInitiali
     @Override
     public void handleResponses(ResponseBuilder responseBuilder, ShardRequest shardRequest){
       // No-op
-    }
-
-    private boolean payloadsEnabled(SolrParams params) {
-        return params.getBool(PayloadParams.PL, false);
     }
 }

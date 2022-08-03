@@ -1,6 +1,8 @@
-apply plugin: 'java-library'
+apply plugin: 'java'
 
 description = 'iSpy Debugging Components for Solr'
+group = 'com.o19s'
+version = '0.1'
 
 repositories {
   mavenCentral()
@@ -10,16 +12,16 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.apache.solr:solr:${solrVersion}'
+  implementation "org.apache.solr:solr-core:${solrVersion}"
 
-  testImplementation('org.mockito:mockito-core', {
+  testImplementation("org.mockito:mockito-core", {
     exclude group: "net.bytebuddy", module: "byte-buddy-agent"
   })
 
-  testImplementation 'org.apache.solr:solr-test-framework:${solrVersion}'
-  testImplementation 'com.carrotsearch.randomizedtesting:randomizedtesting-runner'
-  testImplementation 'junit:junit'
-  testImplementation 'org.hamcrest:hamcrest'
+  testImplementation "org.apache.solr:solr-test-framework:${solrVersion}"
+  testImplementation "com.carrotsearch.randomizedtesting:randomizedtesting-runner"
+  testImplementation "junit:junit"
+  testImplementation "org.hamcrest:hamcrest"
 
-  testImplementation 'commons-io:commons-io'
+  testImplementation "commons-io:commons-io"
 }
