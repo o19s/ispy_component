@@ -21,7 +21,7 @@ Lastly, configure a search handler of your choosing to run the ispy component la
 ```
 <requestHandler name="standard" class="solr.StandardRequestHandler" default="true">
   <lst name="defaults">
-        <str name="df">content</str>
+    <str name="df">content</str>
   </lst>
   <arr name="components">
     <str>query</str>
