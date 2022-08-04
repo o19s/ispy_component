@@ -1,27 +1,34 @@
 package com.o19s.components;
 
-import org.apache.solr.common.params.CommonParams;
-import org.apache.solr.response.JSONWriter;
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.util.NamedList;
+import org.apache.solr.response.JSONResponseWriter;
 import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.common.util.JsonTextWriter;
 import org.apache.solr.core.PluginInfo;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.handler.component.ShardRequest;
-import org.apache.solr.search.SolrCache;
-import org.apache.solr.util.plugin.PluginInfoInitialized;
 import org.apache.solr.util.plugin.SolrCoreAware;
 
 import java.io.IOException;
 import java.io.StringWriter;
 
-public class ISpyComponent extends SearchComponent implements PluginInfoInitialized, SolrCoreAware {
+public class ISpyComponent extends SearchComponent implements SolrCoreAware {
     private PluginInfo info = PluginInfo.EMPTY_INFO;
 
+    // Constants used in solrconfig.xml
+    @VisibleForTesting static final String SOLR_HOST = "solrHost";
+    @VisibleForTesting static final String LOG_COLLECTION = "collection";
+
+
+    protected SolrParams initArgs;
     @Override
-    public void init(PluginInfo pluginInfo) {
-        this.info = pluginInfo;
+    public void init(NamedList args) {
+        this.initArgs = args.toSolrParams();
     }
 
     @Override
@@ -31,46 +38,67 @@ public class ISpyComponent extends SearchComponent implements PluginInfoInitiali
 
     @Override
     public void process(ResponseBuilder responseBuilder) throws IOException {
-        SolrParams params = responseBuilder.req.getParams();
-
-        if(debugEnabled(params)){
-            SolrCache cache = responseBuilder.req.getSearcher().getCache("ispy");
-            if (cache != null) {
-                String key = responseBuilder.req.getOriginalParams().get("q");
-                if (key == null) return;
-
-                final String namedListStyle = params.get(JsonTextWriter.JSON_NL_STYLE, JsonTextWriter.JSON_NL_FLAT).intern();
-                final String wrapperFunction = params.get("json.wrf", "");
-                StringWriter writer = new StringWriter();
-                JSONWriter jsonWriter = new JSONWriter(writer, responseBuilder.req, responseBuilder.rsp, wrapperFunction, namedListStyle) {
-                    public void writeResponse() throws IOException {
-                        if (wrapperFunction != null) {
-                            _writeStr(wrapperFunction + "(");
-                        }
-                        writeNamedList(null, rsp.getValues());
-                        if (wrapperFunction != null) {
-                            _writeChar(')');
-                        }
-                        _writeChar('\n'); // ending with a newline looks much better from the command line
-                        writer.flush(); // TODO: Needed to extend to add this line, how does it work without this?
-                    }
-                };
-
-                try {
-                    jsonWriter.writeResponse();
-                } catch (IOException ex) {
-                    // No-op
-                } finally {
-                    jsonWriter.close();
-                    cache.put(key, writer.toString());
-                }
-            }
-        }
+        // TODO: Single node support is pending
     }
 
     @Override
     public void finishStage(ResponseBuilder responseBuilder) {
-      // TODO: Need logic here to support cloud
+        SolrParams params = responseBuilder.req.getParams();
+
+        if((responseBuilder.stage == responseBuilder.STAGE_GET_FIELDS) && responseBuilder.isDebug()){
+            String key = responseBuilder.req.getOriginalParams().get("q");
+
+            // Exit conditions
+            if (key == null) return;
+            if (initArgs.get(SOLR_HOST) == null) return;
+
+            StringWriter writer = new StringWriter();
+            JSONResponseWriter jsonWriter = new JSONResponseWriter();
+
+            // Opted for cleaner option above but loses json.wrf support and maybe the named list style
+            // Leaving this here in case those options are needed
+            /*
+            final String namedListStyle = params.get(JsonTextWriter.JSON_NL_STYLE, JsonTextWriter.JSON_NL_FLAT).intern();
+            final String wrapperFunction = params.get("json.wrf", null);
+            JSONWriter jsonWriter = new JSONWriter(writer, responseBuilder.req, responseBuilder.rsp, wrapperFunction, namedListStyle) {
+                public void writeResponse() throws IOException {
+                    if (wrapperFunction != null) {
+                        _writeStr(wrapperFunction + "(");
+                    }
+                    writeNamedList(null, rsp.getValues());
+                    if (wrapperFunction != null) {
+                        _writeChar(')');
+                    }
+                    _writeChar('\n'); // ending with a newline looks much better from the command line
+                    writer.flush(); // TODO: Needed to extend to add this line, how does it work without this?
+                }
+            };
+            */
+
+            HttpSolrClient solr = null;
+            try {
+                jsonWriter.write(writer, responseBuilder.req, responseBuilder.rsp);
+                String baseUrl = String.format("%s/%s", initArgs.get(SOLR_HOST), initArgs.get(LOG_COLLECTION, "ispy"));
+                solr = new HttpSolrClient.Builder(baseUrl).build();
+                SolrInputDocument doc = new SolrInputDocument(
+                        "id", key,
+                        "raw_s", writer.toString()
+                );
+                solr.add(doc);
+            } catch (IOException ex) {
+                // No-op
+            } catch (SolrServerException ex) {
+                // No-op
+            } finally {
+                try {
+                    if (solr != null) {
+                        solr.close();
+                    }
+                } catch (IOException ex) {
+                    // No-op
+                }
+            }
+        }
     }
 
     @Override
@@ -91,10 +119,5 @@ public class ISpyComponent extends SearchComponent implements PluginInfoInitiali
     @Override
     public void handleResponses(ResponseBuilder responseBuilder, ShardRequest shardRequest){
       // No-op
-    }
-
-    private boolean debugEnabled(SolrParams params) {
-        // TODO: Other cases to check for?
-        return params.getBool(CommonParams.DEBUG, false);
     }
 }

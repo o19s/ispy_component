@@ -4,6 +4,7 @@ import org.apache.solr.SolrTestCaseJ4;
 import org.apache.solr.util.TestHarness;
 import org.junit.After;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -21,6 +22,7 @@ public class ISpyComponentTest extends SolrTestCaseJ4 {
         super.tearDown();
     }
 
+    @Ignore // TODO: Implement single node support
     @Test
     public void testFunctionality() {
         assertU(adoc("content", "One doc", "id", "1"));

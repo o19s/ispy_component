@@ -91,12 +91,12 @@
   <requestHandler name="/analysis/field" startup="lazy" class="solr.FieldAnalysisRequestHandler" />
   <requestHandler name="/update" class="solr.UpdateRequestHandler"  />
 
-
-  <requestHandler name="/admin/ispy" class="com.o19s.handlers.ISpyRequestHandler">
+  <requestHandler name="/get" class="solr.RealTimeGetHandler">
     <lst name="defaults">
-      <str name="echoParams">explicit</str>
-      <int name="rows">10</int>
-    </lst>	    
+      <str name="omitHeader">true</str>
+      <str name="wt">json</str>
+      <str name="indent">true</str>
+    </lst>
   </requestHandler>
 
   <!-- config for the admin interface -->
@@ -104,13 +104,9 @@
     <defaultQuery>solr</defaultQuery>
   </admin>
 
-  <searchComponent class="com.o19s.components.ISpyComponent" name="ispy" />
+  <searchComponent class="com.o19s.components.ISpyComponent" name="ispy">
+    <str name="solrHost">http://quepid-solr.dev.o19s.com:8985/solr</str>
+    <str name="collection">ispy</str>
+  </searchComponent>
 
-  <cache name="ispy"
-         class="solr.CaffeineCache"
-         size="4096"
-         initialSize="1024"
-         autowarmCount="1024"
-         regenerator="solr.NoOpRegenerator"
-         />
 </config>
