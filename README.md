@@ -24,9 +24,9 @@ Lastly, configure a search handler of your choosing to run the ispy component la
         <str name="df">content</str>
   </lst>
   <arr name="components">
-     <str>query</str>
-     <str>facet</str>
-     str>mlt</str>
+    <str>query</str>
+    <str>facet</str>
+    <str>mlt</str>
     <str>highlight</str>
     <str>stats</str>
     <str>debug</str>
