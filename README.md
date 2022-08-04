@@ -9,8 +9,7 @@ First, add the Jar to your solr lib folder, next add the new component to your `
 
 ```
 <searchComponent class="com.o19s.components.ISpyComponent" name="ispy">
-  <str name="solrHost">http://quepid-solr.dev.o19s.com:8985/solr</str>
-  <str name="collection">ispy</str>
+  <str name="ispyCollection">http://quepid-solr.dev.o19s.com:8985/solr/ispy</str>
 </searchComponent>
 ```
 

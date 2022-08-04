@@ -21,8 +21,7 @@ public class ISpyComponent extends SearchComponent implements SolrCoreAware {
     private PluginInfo info = PluginInfo.EMPTY_INFO;
 
     // Constants used in solrconfig.xml
-    @VisibleForTesting static final String SOLR_HOST = "solrHost";
-    @VisibleForTesting static final String LOG_COLLECTION = "collection";
+    @VisibleForTesting static final String LOG_COLLECTION = "ispyCollection";
 
 
     protected SolrParams initArgs;
@@ -50,7 +49,7 @@ public class ISpyComponent extends SearchComponent implements SolrCoreAware {
 
             // Exit conditions
             if (key == null) return;
-            if (initArgs.get(SOLR_HOST) == null) return;
+            if (initArgs.get(LOG_COLLECTION) == null) return;
 
             StringWriter writer = new StringWriter();
             JSONResponseWriter jsonWriter = new JSONResponseWriter();
@@ -78,7 +77,7 @@ public class ISpyComponent extends SearchComponent implements SolrCoreAware {
             HttpSolrClient solr = null;
             try {
                 jsonWriter.write(writer, responseBuilder.req, responseBuilder.rsp);
-                String baseUrl = String.format("%s/%s", initArgs.get(SOLR_HOST), initArgs.get(LOG_COLLECTION, "ispy"));
+                String baseUrl = initArgs.get(LOG_COLLECTION);
                 solr = new HttpSolrClient.Builder(baseUrl).build();
                 SolrInputDocument doc = new SolrInputDocument(
                         "id", key,
