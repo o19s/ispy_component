@@ -3,6 +3,9 @@ iSpy Component
 
 This is a Solr Component that will log out full Solr responses to a configured Solr collection.  
 
+## Building
+- Run `./gradlew build` to get a new jar in the `build/libs` folder.  From here you can run the demo to get an idea of how the plugin works.
+
 
 ## Setup
 First, add the Jar to your solr lib folder, next add the new component to your `solrconfig.xml`:
